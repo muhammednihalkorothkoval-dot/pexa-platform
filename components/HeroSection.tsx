@@ -1,65 +1,108 @@
 "use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function HeroSection() {
   return (
-    <section className="bg-[#FFC400] min-h-screen flex items-center">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 text-center md:text-left">
-          <motion.h1
-            className="text-5xl md:text-6xl font-bold text-[#111111] mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            PEXA Doorstep Car Care
-          </motion.h1>
-          <motion.p
-            className="text-xl text-[#111111] mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Professional car wash services at your doorstep.<br />
-            Start your own car care business with PEXA.
-          </motion.p>
-          <motion.div
-            className="space-x-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <motion.button
-              className="bg-[#111111] text-white px-6 py-3 rounded-lg font-semibold"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Book Car Wash
-            </motion.button>
-            <Link href="/become-partner">
-              <motion.button
-                className="bg-[#111111] text-white px-6 py-3 rounded-lg font-semibold"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Become a Partner
-              </motion.button>
-            </Link>
-          </motion.div>
-        </div>
-        <div className="md:w-1/2 mt-8 md:mt-0">
-          <motion.div
-            className="bg-gray-200 h-96 flex items-center justify-center rounded-lg"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <p className="text-gray-500 text-lg">Car Wash Illustration</p>
-          </motion.div>
-        </div>
+    <section className="relative overflow-hidden">
+
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/images/hero-bg.jpg"
+          alt="Car wash background"
+          fill
+          priority
+          className="object-cover"
+        />
       </div>
+
+      {/* Yellow Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#FFC400]/90 via-[#FFC400]/80 to-yellow-500/80 -z-10"></div>
+
+      {/* Floating Bubble Effects */}
+      <div className="absolute top-20 left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-10 right-10 w-60 h-60 bg-yellow-200/30 rounded-full blur-3xl"></div>
+      <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-white/20 rounded-full blur-3xl"></div>
+
+      {/* Content */}
+      <div className="relative max-w-7xl mx-auto px-6 py-24">
+
+        <div className="grid md:grid-cols-2 gap-14 items-center">
+
+          {/* LEFT SIDE */}
+          <div className="space-y-8">
+
+            <motion.h1
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-black leading-tight"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              PEXA Doorstep Car Care
+            </motion.h1>
+
+            <motion.p
+              className="text-lg text-black/80 max-w-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              Professional car wash services at your doorstep.  
+              Start your own car care business with PEXA and earn daily income.
+            </motion.p>
+
+            {/* Buttons */}
+            <motion.div
+              className="flex gap-4 flex-wrap"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+
+              <Link href="/apply">
+                <button className="bg-black text-white px-7 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition">
+                  Book Car Wash
+                </button>
+              </Link>
+
+              <Link href="/become-partner">
+                <button className="bg-white text-black px-7 py-3 rounded-xl font-semibold shadow hover:scale-105 transition">
+                  Become a Partner
+                </button>
+              </Link>
+
+            </motion.div>
+
+          </div>
+
+          {/* RIGHT IMAGE */}
+          <motion.div
+            className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/30 backdrop-blur-lg"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1 }}
+          >
+
+            <div className="relative h-[380px] w-full">
+
+              <Image
+                src="/images/carwash.jpg"
+                alt="Car washing service"
+                fill
+                className="object-cover"
+              />
+
+            </div>
+
+          </motion.div>
+
+        </div>
+
+      </div>
+
     </section>
   );
 }
