@@ -1,291 +1,203 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function ApplyPage() {
-
   const [form, setForm] = useState<any>({});
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: any) => {
-    const { name, value, files } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
 
-    setForm({
-      ...form,
-      [name]: files ? files[0] : value,
-    });
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-
-    const fileToBase64 = (file: File) =>
-      new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result === "string") resolve(result);
-          else reject(new Error("Failed to read file"));
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
+    if (e.target instanceof HTMLInputElement && e.target.files) {
+      setForm({
+        ...form,
+        [name]: e.target.files[0],
       });
-
-    try {
-      const payload = {
-        name: form.name || "",
-        phone: form.phone || "",
-        whatsapp: form.whatsapp || "",
-        pincode: form.pincode || "",
-        city: form.city || "",
-        house: form.house || "",
-        street: form.street || "",
-        bike: form.bike || "",
-        licenseFront: form.licenseFront ? await fileToBase64(form.licenseFront) : "",
-        licenseBack: form.licenseBack ? await fileToBase64(form.licenseBack) : "",
-        aadhaarFront: form.aadhaarFront ? await fileToBase64(form.aadhaarFront) : "",
-        aadhaarBack: form.aadhaarBack ? await fileToBase64(form.aadhaarBack) : "",
-      };
-
-      const res = await fetch("/api/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+    } else {
+      setForm({
+        ...form,
+        [name]: value,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Submission failed");
-      }
-
-      alert("Application submitted successfully!");
-      setForm({});
-    } catch (error: any) {
-      console.error(error);
-      alert(error.message || "Something went wrong. Please try again.");
     }
   };
 
+const uploadFile = async (file: File) => {
+  const filePath = `${Date.now()}-${file.name}`;
+
+  const { error } = await supabase.storage
+    .from("uploads")
+    .upload(filePath, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) {
+    console.error("Upload error:", error);
+    throw error;
+  }
+
+  const { data } = supabase.storage
+    .from("uploads")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const licenseFrontUrl = await uploadFile(form.licenseFront);
+      const licenseBackUrl = await uploadFile(form.licenseBack);
+      const aadhaarFrontUrl = await uploadFile(form.aadhaarFront);
+      const aadhaarBackUrl = await uploadFile(form.aadhaarBack);
+
+      const { error } = await supabase.from("applications").insert([
+        {
+          name: form.name,
+          phone: form.phone,
+          whatsapp: form.whatsapp,
+          city: form.city,
+          pincode: form.pincode,
+          house: form.house,
+          street: form.street,
+          bike: form.bike,
+          license_front: licenseFrontUrl,
+          license_back: licenseBackUrl,
+          aadhaar_front: aadhaarFrontUrl,
+          aadhaar_back: aadhaarBackUrl,
+          status: "pending",
+        },
+      ]);
+
+      if (error) throw error;
+
+      alert("Application submitted successfully");
+      setForm({});
+    } catch (error) {
+      console.error(error);
+      alert("Submission failed");
+    }
+
+    setLoading(false);
+  };
+
   return (
-    <section className="min-h-screen bg-[#F7F7F7] py-16 px-4">
+    <div className="max-w-3xl mx-auto py-16 px-6">
+      <h1 className="text-3xl font-bold mb-10 text-center">
+        Partner Application
+      </h1>
 
-      <div className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-lg">
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-center mb-2 text-[#111111]">
-          Become a PEXA Partner
-        </h1>
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-        <p className="text-center text-gray-600 mb-10">
-          Fill the form below to start working with PEXA
-        </p>
+        <input
+          type="text"
+          name="phone"
+          placeholder="Phone Number"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <input
+          type="text"
+          name="whatsapp"
+          placeholder="WhatsApp Number"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <input
+          type="text"
+          name="city"
+          placeholder="City"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-          {/* Phone */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
-            <input
-              type="tel"
-              name="phone"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <input
+          type="text"
+          name="pincode"
+          placeholder="Pincode"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-          {/* WhatsApp */}
-          <div>
-            <label className="block text-sm font-medium mb-1">WhatsApp Number</label>
-            <input
-              type="tel"
-              name="whatsapp"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <input
+          type="text"
+          name="house"
+          placeholder="House Name / Number"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-          {/* Pincode */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Pincode</label>
-            <input
-              type="text"
-              name="pincode"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <input
+          type="text"
+          name="street"
+          placeholder="Street Name"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        />
 
-          {/* City */}
-          <div>
-            <label className="block text-sm font-medium mb-1">City Name</label>
-            <input
-              type="text"
-              name="city"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <select
+          name="bike"
+          onChange={handleChange}
+          required
+          className="w-full border p-3 rounded"
+        >
+          <option value="">Do you have a bike?</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
 
-          {/* House */}
-          <div>
-            <label className="block text-sm font-medium mb-1">House Name / Number</label>
-            <input
-              type="text"
-              name="house"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <div>
+          <label className="block mb-2">Driving License Front</label>
+          <input type="file" name="licenseFront" onChange={handleChange} required />
+        </div>
 
-          {/* Street */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Street Name</label>
-            <input
-              type="text"
-              name="street"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            />
-          </div>
+        <div>
+          <label className="block mb-2">Driving License Back</label>
+          <input type="file" name="licenseBack" onChange={handleChange} required />
+        </div>
 
-          {/* Bike */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Do you have a Bike?
-            </label>
+        <div>
+          <label className="block mb-2">Aadhaar Front</label>
+          <input type="file" name="aadhaarFront" onChange={handleChange} required />
+        </div>
 
-            <select
-              name="bike"
-              required
-              onChange={handleChange}
-              className="w-full border rounded-lg px-4 py-3"
-            >
-              <option value="">Select</option>
-              <option>Yes</option>
-              <option>No</option>
-            </select>
-          </div>
+        <div>
+          <label className="block mb-2">Aadhaar Back</label>
+          <input type="file" name="aadhaarBack" onChange={handleChange} required />
+        </div>
 
-          {/* DOCUMENT UPLOAD SECTION */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-black text-white py-3 rounded"
+        >
+          {loading ? "Submitting..." : "Submit Application"}
+        </button>
 
-          <div className="grid md:grid-cols-2 gap-10 pt-6">
-
-            {/* DRIVING LICENSE */}
-            <div>
-
-              <h3 className="text-yellow-500 font-semibold mb-4 tracking-widest text-sm">
-                DRIVING LICENSE
-              </h3>
-
-              {/* Front */}
-              <label className="block border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:border-yellow-400 transition mb-4">
-
-                <p className="font-semibold text-gray-600">FRONT SIDE</p>
-                <p className="text-sm text-gray-400">Click or drag to upload</p>
-
-                <input
-                  type="file"
-                  name="licenseFront"
-                  onChange={handleChange}
-                  className="hidden"
-                  required
-                />
-
-              </label>
-
-              {/* Back */}
-              <label className="block border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:border-yellow-400 transition">
-
-                <p className="font-semibold text-gray-600">BACK SIDE</p>
-                <p className="text-sm text-gray-400">Click or drag to upload</p>
-
-                <input
-                  type="file"
-                  name="licenseBack"
-                  onChange={handleChange}
-                  className="hidden"
-                  required
-                />
-
-              </label>
-
-            </div>
-
-            {/* AADHAAR CARD */}
-            <div>
-
-              <h3 className="text-yellow-500 font-semibold mb-4 tracking-widest text-sm">
-                AADHAAR CARD
-              </h3>
-
-              {/* Front */}
-              <label className="block border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:border-yellow-400 transition mb-4">
-
-                <p className="font-semibold text-gray-600">FRONT SIDE</p>
-                <p className="text-sm text-gray-400">Click or drag to upload</p>
-
-                <input
-                  type="file"
-                  name="aadhaarFront"
-                  onChange={handleChange}
-                  className="hidden"
-                  required
-                />
-
-              </label>
-
-              {/* Back */}
-              <label className="block border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:border-yellow-400 transition">
-
-                <p className="font-semibold text-gray-600">BACK SIDE</p>
-                <p className="text-sm text-gray-400">Click or drag to upload</p>
-
-                <input
-                  type="file"
-                  name="aadhaarBack"
-                  onChange={handleChange}
-                  className="hidden"
-                  required
-                />
-
-              </label>
-
-            </div>
-
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:scale-105 transition mt-6"
-          >
-            Submit Application
-          </button>
-
-        </form>
-
-      </div>
-
-    </section>
+      </form>
+    </div>
   );
 }
