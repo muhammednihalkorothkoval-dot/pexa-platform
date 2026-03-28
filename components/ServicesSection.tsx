@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import Image from "next/image";
 
 export default function ServicesSection() {
@@ -85,25 +84,6 @@ export default function ServicesSection() {
           ))}
 
         </div>
-
-        {/* CTA */}
-        <motion.div
-          className="text-center mt-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-
-          <Link
-            href="/apply"
-            className="inline-block bg-black text-white px-8 py-3 rounded-xl font-semibold hover:scale-105 transition"
-          >
-            Book Car Wash
-          </Link>
-
-        </motion.div>
-
       </div>
     </section>
   );

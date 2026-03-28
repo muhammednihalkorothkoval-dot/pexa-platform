@@ -1,7 +1,9 @@
-export default function Page() {
+"use client";
+
+export default function PaymentPage() {
   return (
-    <div className="p-10">
-      <h1 className="text-3xl font-bold">Payment</h1>
+    <div style={{ color: "white", background: "black", height: "100vh" }}>
+      PAYMENT PAGE WORKING
     </div>
-  )
+  );
 }

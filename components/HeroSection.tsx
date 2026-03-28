@@ -61,13 +61,6 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-
-              <Link href="/apply">
-                <button className="bg-black text-white px-7 py-3 rounded-xl font-semibold shadow-lg hover:scale-105 transition">
-                  Book Car Wash
-                </button>
-              </Link>
-
               <Link href="/become-partner">
                 <button className="bg-white text-black px-7 py-3 rounded-xl font-semibold shadow hover:scale-105 transition">
                   Become a Partner
